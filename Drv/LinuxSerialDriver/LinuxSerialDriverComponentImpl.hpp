@@ -100,6 +100,14 @@ namespace Drv {
           Fw::Buffer& fwBuffer
       );
 
+         //! Handler implementation for binaryMode
+      //!
+      void binaryMode_handler(
+          const NATIVE_INT_TYPE portNum, /*!< The port number*/
+          U16 length /*!< Bytes to read in binary mode*/
+      );
+
+
       NATIVE_INT_TYPE m_fd; //!< file descriptor returned for I/O device
       const char* m_device; //!< original device path
 
@@ -114,6 +122,9 @@ namespace Drv {
       } m_buffSet[DR_MAX_NUM_BUFFERS];
 
       Os::Mutex m_readBuffMutex;
+
+      U32 binaryMode;   // if set to zero, will return buffer when '\n' is received
+                        // if > 0, will receive data and decrement counter
 
       bool m_quitReadThread; //!< flag to quit thread
 

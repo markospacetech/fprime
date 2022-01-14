@@ -1,5 +1,5 @@
 module Drv {
-
+ 
   passive component LinuxSerialDriver {
 
     # ----------------------------------------------------------------------
@@ -10,6 +10,8 @@ module Drv {
 
     sync input port serialSend: Drv.SerialWrite
 
+    sync input port binaryMode: [1] Drv.BinaryMode
+
     # ----------------------------------------------------------------------
     # Special ports
     # ----------------------------------------------------------------------
@@ -17,7 +19,7 @@ module Drv {
     event port Log
 
     output port serialRecv: Drv.SerialRead
-
+    
     telemetry port Tlm
 
     text event port LogText

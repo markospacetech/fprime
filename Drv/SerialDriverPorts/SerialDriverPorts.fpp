@@ -3,6 +3,10 @@ module Drv {
   port SerialWrite(
                     ref serBuffer: Fw.Buffer
                   )
+  port BinaryMode(
+                   length: U16 @< Bytes to read in binary mode
+                 )
+  
 
 }
 

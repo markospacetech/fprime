@@ -276,6 +276,11 @@ namespace Drv {
       // All done!
       Fw::LogStringArg _arg = device;
       this->log_ACTIVITY_HI_DR_PortOpened(_arg);
+
+      // Default mode is non-binary
+      this->binaryMode = 0;
+
+
       return true;
   }
 
@@ -317,6 +322,15 @@ namespace Drv {
       }
   }
 
+  void LinuxSerialDriverComponentImpl ::binaryMode_handler(
+        const NATIVE_INT_TYPE portNum,
+        U16 length
+    ) {
+    DEBUG_PRINT("Binary mode set (%lu)\n", length);
+    this->binaryMode = length;
+    }
+
+
   void LinuxSerialDriverComponentImpl ::
     serialReadTaskEntry(void * ptr) {
 
@@ -329,7 +343,7 @@ namespace Drv {
       while (true) {
           // wait for data
           int sizeRead = 0;
-
+          char c;
           // find open buffer
 
           comp->m_readBuffMutex.lock();
@@ -367,6 +381,8 @@ namespace Drv {
                   return;
               }
 
+              stat = ::read(comp->m_fd, &c, 1);
+
               stat = ::read(comp->m_fd,
                             buff.getData(),
                             buff.getSize());
@@ -379,6 +395,26 @@ namespace Drv {
                   totalSizeRead += sizeRead;
                   //printf("<<< totalSizeRead: %d, readSize: %d\n", totalSizeRead, sizeRead);
                   //printf("<<< read size: %d\n", stat);
+                  if(comp->binaryMode) {
+                        // Decrement counter and send data when full
+                        if (--comp->binaryMode == 0)
+                        {
+                            serReadStat = Drv::SerialReadStatus::SER_OK;
+                            DEBUG_PRINT("Send binary (%u)\n", buff.getSize());
+                            comp->serialRecv_out(0, buff, serReadStat);
+                            break; // Allocate new buffer for next data
+                        } 
+                    } else {
+                        
+                        // If non-binary mode, return buffer when '\n' char is detected
+                        if(c == '\n') {
+                            serReadStat = Drv::SerialReadStatus::SER_OK;
+                            DEBUG_PRINT("Send %s\n", buff.getData());
+                            comp->serialRecv_out(0, buff, serReadStat);  
+                            break; // Allocate new buffer for next data
+                        }
+                    }
+
               }
 
               // check for timeout
